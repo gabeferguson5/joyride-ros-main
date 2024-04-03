@@ -143,7 +143,7 @@ class TrafficSignDetector(Node):
 
         for row in df.itertuples():
            
-            # self.get_logger().info(f"Detected {row.name}")
+            self.get_logger().info(f"Detected {row.name}")
 
             detection = Detection2D()
 
@@ -192,16 +192,17 @@ class TrafficSignDetector(Node):
 
         return dda
        
-    def add_bounding_box(self, image, results):
-        for result in results.xyxy[0]:
-            label = int(result[5])
-            confidence = result[4]
-            xmin, ymin, xmax, ymax = map(int, result[:4])
+    # def add_bounding_box(self, image, results):
+    #     for result in results.xyxy[0]:
+    #         label = int(result[5])
+    #         confidence = result[4]
+    #         xmin, ymin, xmax, ymax = map(int, result[:4])
+    #         # print(results.xyxy[0])
 
-            cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-            cv2.putText(image, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+    #         cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+    #         cv2.putText(image, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
        
-        return image
+    #     return image
 
     def listener_callback(self, data): 
         #deleted row
@@ -211,11 +212,13 @@ class TrafficSignDetector(Node):
 
         if self.get_parameter('pub_image').value:
             #processed_image = self.br.cv2_to_imgmsg(results.ims[0])
+            print(results.xyxy[0])
             for result in results.xyxy[0]:
                 label = int(result[5])
                 confidence = result[4]
                 xmin, ymin, xmax, ymax = map(int, result[:4])
-
+                if label == 1:
+                    label = "stop"
                 cv2.rectangle(current_frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
                 cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
                
