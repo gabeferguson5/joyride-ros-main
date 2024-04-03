@@ -30,6 +30,7 @@ class TrafficSignDetector(Node):
         ) # may want to mess with the queue size of 1
         self.declare_parameter('pub_area_in_ROI', True) # ADDED
         self.declare_parameter('pub_contour_img', True) # ADDED
+        self.declare_parameter('pub_height_stop', True) # ADDED
 
         self.image_publisher = self.create_publisher(Image, 'yolov5/image', 10)
         self.json_publisher = self.create_publisher(String, 'yolov5/json', 10)
@@ -37,6 +38,7 @@ class TrafficSignDetector(Node):
         self.proc_image_publisher = self.create_publisher(Image, 'yolov5/proc_image',10) # ADDED
         self.area_publisher = self.create_publisher(Float32, 'SignDetector/StopSign_area', 10 ) # ADDED
         self.contour_publisher = self.create_publisher(Image, 'SignDetector/ContourImage', 10) # ADDED
+        self.height_publisher = self.height_publisher(Float32, 'SignDetector/HeightStop', 10) # ADDED
 
         self.counter = 0
         self.br = CvBridge()
@@ -153,6 +155,12 @@ class TrafficSignDetector(Node):
                     cv2.drawContours(roi, cnt, -1, (255, 0, 255), 7)
                     total_area_roi = total_area_roi + area_roi
         return total_area_roi
+    
+    def get_height(self, results):
+        for result in results:
+        xmin, ymin,xmax, ymax = map(int, result[:4])
+        height = ymax - ymin
+        return height
 
     def listener_callback(self, data): 
         #deleted row
@@ -210,6 +218,10 @@ class TrafficSignDetector(Node):
         if self.get_parameter('pub_contour_img').value:
             contoured_image = self.br.cv2_to_imgmsg(imgContour)
             self.contour_publisher.publish(contoured_image)
+
+        if self.get_parameter('pub_height_stop').value:
+            height = self.get_height(results)
+            self.height_publisher.publish(height)
 
         # if self.get_parameter('pub_proc_image').value:
         #     image_with_bboxes = self.add_bounding_box(current_frame, results)
