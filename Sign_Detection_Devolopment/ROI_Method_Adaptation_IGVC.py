@@ -38,7 +38,7 @@ class TrafficSignDetector(Node):
         self.proc_image_publisher = self.create_publisher(Image, 'yolov5/proc_image',10) # ADDED
         self.area_publisher = self.create_publisher(Float32, 'SignDetector/StopSign_area', 10 ) # ADDED
         self.contour_publisher = self.create_publisher(Image, 'SignDetector/ContourImage', 10) # ADDED
-        self.height_publisher = self.height_publisher(Float32, 'SignDetector/HeightStop', 10) # ADDED
+        self.height_publisher = self.create_publisher(Float32, 'SignDetector/HeightStop', 10) # ADDED
 
         self.counter = 0
         self.br = CvBridge()
