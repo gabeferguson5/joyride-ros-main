@@ -103,7 +103,7 @@ class TrafficSignDetector(Node):
         self.declare_parameter('pub_boxes', True)
         self.declare_parameter('pub_proc_image', True) # ADDED
         # self.declare_parameter('weights_path', '/home/joyride-obc/joyride-ros-main/src/joyride_perception/config/best.pt')
-        self.declare_parameter('weights_path', '/home/joyride-obc/joyride-ros-main/src/joyride_perception/config/last.pt')
+        self.declare_parameter('weights_path', '/home/joyride-obc/joyride-ros-main/src/joyride_perception/config/best_bestdataset_YOLOV5.pt')
         self.subscription = self.create_subscription(
             Image,
             # '/sensors/cameras/lane/image_raw',
@@ -143,7 +143,7 @@ class TrafficSignDetector(Node):
 
         for row in df.itertuples():
            
-            self.get_logger().info(f"Detected {row.name}")
+            # self.get_logger().info(f"Detected {row.name}")
 
             detection = Detection2D()
 
@@ -212,15 +212,31 @@ class TrafficSignDetector(Node):
 
         if self.get_parameter('pub_image').value:
             #processed_image = self.br.cv2_to_imgmsg(results.ims[0])
-            print(results.xyxy[0])
+            #print(results.xyxy[0])
             for result in results.xyxy[0]:
                 label = int(result[5])
                 confidence = result[4]
                 xmin, ymin, xmax, ymax = map(int, result[:4])
-                if label == 1:
+                #height = ymax - ymin # ADDED
+                #print(ymin)
+                #print(height)
+                width = xmax - xmin
+                centr_bbox = xmin + (width/2)
+                tune_d_pred = 10
+                #print('W:',width)
+                #print('U:', centr_bbox)
+                #print('H:', height)
+                d_pred = (width / 8045) ** (1/-0.754) + tune_d_pred
+                if width > 270:
+                    d_pred = d_pred + tune_d_pred - 10
+                d_pred_ft = float(d_pred) / 12.0
+                print(d_pred_ft,'ft.', d_pred, 'in')
+                if (label == 1):
                     label = "stop"
                 cv2.rectangle(current_frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
                 cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                #d_text = "Distance: {:.2f}".format(d_pred)
+                #cv2.putText(current_frame, d_pred, (xmin, ymax-5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
                
                 #cv2.putText(current_frame, f"{result.name} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
                 #self.get_logger().info(f"Detected {result.name}")
