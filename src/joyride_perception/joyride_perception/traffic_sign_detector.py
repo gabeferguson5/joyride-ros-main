@@ -93,6 +93,8 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose, ObjectHypothesis, BoundingBox2D, Point2D, Pose2D
 from geometry_msgs.msg import PoseWithCovariance, Point
+import easyocr
+import numpy as np
 
 class TrafficSignDetector(Node):
     def __init__(self):
@@ -209,6 +211,10 @@ class TrafficSignDetector(Node):
         #self.get_logger().info('Got Image')
         current_frame = self.br.imgmsg_to_cv2(data)
         results = self.inference(current_frame)
+        reader = easyocr.Reader(['en'])
+        
+
+                    # Use EasyOCR to read the text from the cropped image
 
         if self.get_parameter('pub_image').value:
             #processed_image = self.br.cv2_to_imgmsg(results.ims[0])
@@ -217,6 +223,15 @@ class TrafficSignDetector(Node):
                 label = int(result[5])
                 confidence = result[4]
                 xmin, ymin, xmax, ymax = map(int, result[:4])
+                # Crop the detected stop sign
+                cropped_img = current_frame[ymin:ymax, xmin:xmax]
+                flipped_img = cv2.flip(cropped_img,0)
+                flipped_img = cv2.flip(flipped_img,1)
+                # cv2.imshow('flipped image',flipped_img)
+                ocr_results = reader.readtext(flipped_img)
+
+                detected_text = " ".join(res[1] for res in ocr_results)
+                print("printed ocr", detected_text)
                 #height = ymax - ymin # ADDED
                 #print(ymin)
                 #print(height)
