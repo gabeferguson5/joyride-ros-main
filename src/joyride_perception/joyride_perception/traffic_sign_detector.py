@@ -95,6 +95,7 @@ from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithP
 from geometry_msgs.msg import PoseWithCovariance, Point
 import easyocr
 import numpy as np
+# from PIL import Image
 
 class TrafficSignDetector(Node):
     def __init__(self):
@@ -109,7 +110,8 @@ class TrafficSignDetector(Node):
         self.subscription = self.create_subscription(
             Image,
             # '/sensors/cameras/lane/image_raw',
-            '/sensors/cameras/center/image',
+            # '/sensors/cameras/center/image',
+            '/sensors/cameras/right/image',
             self.listener_callback,
             1
         ) # may want to mess with the queue size of 1
@@ -211,7 +213,8 @@ class TrafficSignDetector(Node):
         #self.get_logger().info('Got Image')
         current_frame = self.br.imgmsg_to_cv2(data)
         results = self.inference(current_frame)
-        reader = easyocr.Reader(['en'])
+
+        # reader = easyocr.Reader(['en'])
         
 
                     # Use EasyOCR to read the text from the cropped image
@@ -219,29 +222,54 @@ class TrafficSignDetector(Node):
         if self.get_parameter('pub_image').value:
             #processed_image = self.br.cv2_to_imgmsg(results.ims[0])
             #print(results.xyxy[0])
+            # reader = easyocr.Reader(['en'])
+
+
+            # frame_skip_counter = 0
+            # frame_skip_threshold = 100000
+            last_detected_texts = {}
             for result in results.xyxy[0]:
                 label = int(result[5])
                 confidence = result[4]
                 xmin, ymin, xmax, ymax = map(int, result[:4])
                 # Crop the detected stop sign
-                cropped_img = current_frame[ymin:ymax, xmin:xmax]
-                flipped_img = cv2.flip(cropped_img,0)
-                flipped_img = cv2.flip(flipped_img,1)
-                # cv2.imshow('flipped image',flipped_img)
-                ocr_results = reader.readtext(flipped_img)
+                # cropped_img = current_frame[ymin:ymax, xmin:xmax]
+                # cropped_img = current_frame.crop()
+                # flipped_img = cv2.flip(cropped_img,0)
+                # flipped_img = cv2.flip(flipped_img,1)
+                # conver_image = cv2.cvtColor(flipped_img,cv2.COLOR_BGR2RGB)
+                # pil_image = Image.fromarray(conver_image)
 
-                detected_text = " ".join(res[1] for res in ocr_results)
-                print("printed ocr", detected_text)
-                #height = ymax - ymin # ADDED
+                # if frame_skip_counter % frame_skip_threshold == 0:
+                #     reader = easyocr.Reader(['en'])
+
+
+                #     ocr_results = reader.readtext(np.array(flipped_img))
+                #     detected_text = " ".join(res[1] for res in ocr_results)
+                #     last_detected_texts[label] = detected_text
+                # else:
+                #     detected_text = last_detected_texts.get(label, "")
+
+
+                # imgGray = cv2.cvtColor(flipped_img, cv2.COLOR_BGR2GRAY)
+                # cv2.imshow('flipped image',flipped_img)
+                # ocr_results = reader.readtext(flipped_img)
+                # ocr_results = reader.readtext(np.array(flipped_img))
+                # detected_text = " ".join(res[1] for res in ocr_results)
+                # print("printed ocr", detected_text)
+                height = ymax - ymin # ADDED
                 #print(ymin)
                 #print(height)
                 width = xmax - xmin
                 centr_bbox = xmin + (width/2)
+                d_pred_val = width # Default with width
+                if height > 1.1*width: #Monitor edge case
+                    d_pred_val = height
                 tune_d_pred = 10
                 #print('W:',width)
                 #print('U:', centr_bbox)
                 #print('H:', height)
-                d_pred = (width / 8045) ** (1/-0.754) + tune_d_pred
+                d_pred = (d_pred_val / 8045) ** (1/-0.754) + tune_d_pred
                 if width > 270:
                     d_pred = d_pred + tune_d_pred - 10
                 d_pred_ft = float(d_pred) / 12.0
@@ -250,6 +278,8 @@ class TrafficSignDetector(Node):
                     label = "stop"
                 cv2.rectangle(current_frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
                 cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                cv2.putText(current_frame, f"{d_pred_ft}, ", (xmax, ymax + 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+
                 #d_text = "Distance: {:.2f}".format(d_pred)
                 #cv2.putText(current_frame, d_pred, (xmin, ymax-5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
                
@@ -257,6 +287,7 @@ class TrafficSignDetector(Node):
                 #self.get_logger().info(f"Detected {result.name}")
                 # Font size changed to 2 above
             #printing array for troubleshooting
+            # frame_skip_counter += 1
             cv2.imshow('Processed Image', current_frame)
             cv2.waitKey(1)
             cv2.imwrite('/home/joyride-obc/joyride-ros-main/src/joyride_perception/first_frame4meter.jpg', current_frame)
