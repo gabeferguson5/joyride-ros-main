@@ -14,7 +14,7 @@ import numpy as np
 
 # Lazer Scan Correlation
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class PointCorresponder():
     def __init__(self, θ_err:float, n_clusters: float, R: float, clustering_threshold: float = 0.1):
@@ -115,7 +115,7 @@ class BlobDetector(Node):
                 obs_msg.is_dense = True
                 obs_msg.data = np.asarray(pos_obs, dtype=np.float32).tobytes()
                 self.obs_pub.publish(obs_msg)
-        #self.contour_pub.publish(self.bridge.cv2_to_imgmsg(image_obs, 'bgr8')) #bgr8 8UC1
+        self.contour_pub.publish(self.bridge.cv2_to_imgmsg(image_obs, 'bgr8')) #bgr8 8UC1
 
     def laser_scan_cb(self, msg: LaserScan) -> None:
         θ_bounds = np.array([msg.angle_min, msg.angle_max])

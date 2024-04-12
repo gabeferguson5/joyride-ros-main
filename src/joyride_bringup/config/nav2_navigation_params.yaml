@@ -138,7 +138,7 @@ local_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_persistence: 2.0     # Number of seconds before objects are cleared once they move 
+        observation_persistence: 0.0     # Number of seconds before objects are cleared once they move 
         observation_sources: hokuyo_front_scan
         hokuyo_front_scan:
           topic: /sensors/lidar/front_lidar/scan

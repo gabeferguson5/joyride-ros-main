@@ -12,15 +12,15 @@ diagnostic_analyzers:
       path: dbw
       startswith: ['/dbw']
 
-    # sensors:
-    #   type: diagnostic_aggregator/GenericAnalyzer
-    #   path: sensors
-    #   startswith: ['/sensors']
+    sensors:
+      type: diagnostic_aggregator/GenericAnalyzer
+     path: sensors
+     startswith: ['/sensors']
 
-    # algorithms:
-    #   type: diagnostic_aggregator/GenericAnalyzer
-    #   path: algorithms
-    #   startswith: ['/algorithms']
+   algorithms:
+     type: diagnostic_aggregator/GenericAnalyzer
+     path: algorithms
+     startswith: ['/algorithms']
 
     utility:
       type: diagnostic_aggregator/GenericAnalyzer
