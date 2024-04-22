@@ -83,13 +83,14 @@
 
 # if __name__ == '__main__':
 #     main()
+
 import torch
 import requests
 import rclpy
 from rclpy.node import Node
 import cv2
 from cv_bridge import CvBridge
-from std_msgs.msg import String
+from std_msgs.msg import String, Int32MultiArray
 from sensor_msgs.msg import Image
 from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose, ObjectHypothesis, BoundingBox2D, Point2D, Pose2D
 from geometry_msgs.msg import PoseWithCovariance, Point
@@ -97,11 +98,19 @@ import easyocr
 import numpy as np
 # from PIL import Image
 
+from dataclasses import dataclass
+
+@dataclass
+class DetectedItem():
+    range: float = 0
+    confidence: float = 0
+    red_detected: bool = False
+
 class TrafficSignDetector(Node):
     def __init__(self):
         super().__init__('yolov5_node')
 
-        self.declare_parameter('pub_image', True)
+        self.declare_parameter('pub_image', True) # Keep True
         self.declare_parameter('pub_json', False)
         self.declare_parameter('pub_boxes', True)
         self.declare_parameter('pub_proc_image', True) # ADDED
@@ -120,6 +129,9 @@ class TrafficSignDetector(Node):
         self.json_publisher = self.create_publisher(String, 'yolov5/json', 10)
         self.detection_publisher = self.create_publisher(Detection2DArray, 'yolov5/detection_boxes', 10)
         self.proc_image_publisher = self.create_publisher(Image, 'yolov5/proc_image',10) # ADDED
+        #self.sign_det_range_publisher = self.create_publisher(Int32MultiArray, 'yolov5/det_range_info', 10)
+
+        #self.imageProcessTimer = self.create_timer(0.05, self.processImageCB)
 
         self.counter = 0
         self.br = CvBridge()
@@ -139,62 +151,62 @@ class TrafficSignDetector(Node):
     def inference(self, image: Image):
         return self.model(image)
 
-    def getDetectionArray(self, df):
-        dda = Detection2DArray()
+    # def getDetectionArray(self, df):
+    #     dda = Detection2DArray()
 
-        detections = []
-        self.counter += 1
+    #     detections = []
+    #     self.counter += 1
 
-        for row in df.itertuples():
+    #     for row in df.itertuples():
            
-            # self.get_logger().info(f"Detected {row.name}")
+    #         # self.get_logger().info(f"Detected {row.name}")
 
-            detection = Detection2D()
+    #         detection = Detection2D()
 
-            detection.header.stamp = self.get_clock().now().to_msg()
-            detection.header.frame_id = str(self.counter)
+    #         detection.header.stamp = self.get_clock().now().to_msg()
+    #         detection.header.frame_id = str(self.counter)
 
-            hypothesises = []
-            hypothesis = ObjectHypothesisWithPose()
-            hypothesis.hypothesis.class_id = str(row[6])
-            hypothesis.hypothesis.score = float(row[5])
+    #         hypothesises = []
+    #         hypothesis = ObjectHypothesisWithPose()
+    #         hypothesis.hypothesis.class_id = str(row[6])
+    #         hypothesis.hypothesis.score = float(row[5])
 
-            pwc = PoseWithCovariance()
-            pwc.pose.position = Point()
-            pwc.pose.position.x = (int(row.xmin) + int(row.xmax)) / 2
-            pwc.pose.position.y = (int(row.ymin) + int(row.ymax)) / 2
+    #         pwc = PoseWithCovariance()
+    #         pwc.pose.position = Point()
+    #         pwc.pose.position.x = (int(row.xmin) + int(row.xmax)) / 2
+    #         pwc.pose.position.y = (int(row.ymin) + int(row.ymax)) / 2
 
-            hypothesis.pose = pwc
+    #         hypothesis.pose = pwc
 
-            hypothesises.append(hypothesis)
-            detection.results = hypothesises
+    #         hypothesises.append(hypothesis)
+    #         detection.results = hypothesises
 
-            bbox = BoundingBox2D()
-            bbox.size_x = (int(row.xmax) - int(row.xmin)) / 2
-            bbox.size_y = (int(row.ymax) - int(row.ymin)) / 2
+    #         bbox = BoundingBox2D()
+    #         bbox.size_x = (int(row.xmax) - int(row.xmin)) / 2
+    #         bbox.size_y = (int(row.ymax) - int(row.ymin)) / 2
 
-            point = Point2D()
-            point.x = (int(row.xmin) + int(row.xmax)) / 2
-            point.y = (int(row.ymin) + int(row.ymax)) / 2
+    #         point = Point2D()
+    #         point.x = (int(row.xmin) + int(row.xmax)) / 2
+    #         point.y = (int(row.ymin) + int(row.ymax)) / 2
 
-            center = Pose2D()
-            center.position = point
-            center.theta = 0.0
+    #         center = Pose2D()
+    #         center.position = point
+    #         center.theta = 0.0
 
-            detection.bbox = bbox
+    #         detection.bbox = bbox
 
-            detections.append(detection)
+    #         detections.append(detection)
 
 
 
-        dda.detections = detections
-        dda.header.stamp = self.get_clock().now().to_msg()
-        dda.header.frame_id = str(self.counter)
+    #     dda.detections = detections
+    #     dda.header.stamp = self.get_clock().now().to_msg()
+    #     dda.header.frame_id = str(self.counter)
 
-        # print("row")
-        # print(row)
+    #     # print("row")
+    #     # print(row)
 
-        return dda
+    #     return dda
        
     # def add_bounding_box(self, image, results):
     #     for result in results.xyxy[0]:
@@ -208,7 +220,42 @@ class TrafficSignDetector(Node):
        
     #     return image
 
+    # def rangePrediction(self, width: int) -> float:
+    #     raise NotImplemented
+
+    # def processImageCB(self):
+    #     detectedItems = self.stopSignDetection(self.image)
+    #     self.publish_data(detectedItems)
+
+    # def publish_data(self, detectedItems: list[DetectedItem]):
+    #     detections = Detection2D()
+    #     detections.header.frame_id = "blfy_right"
+    #     detections.header.stamp = self.get_clock().now().to_msg()
+
+
+    #     for  i, item in enumerate(detectedItems):
+    #         d = ObjectHypothesisWithPose()
+
+    #         d.id = i
+    #         d.score = item.confidence
+    #         d.pose.pose.position.x      = item.range
+    #         d.pose.pose.position.y      = 0
+    #         d.pose.pose.position.z      = 0
+    #         d.pose.pose.orientation.x   = 0
+    #         d.pose.pose.orientation.y   = 0
+    #         d.pose.pose.orientation.z   = 0
+    #         d.pose.pose.orientation.w   = 1
+
+    #         detections.results.append(d)
+
+    #     #publish detections
+    
+    # def stopSignDetection(self, img: np.ndarray) -> list[DetectedItem]:
+    #     raise NotImplemented
+
     def listener_callback(self, data): 
+        self.image = self.br.imgmsg_to_cv2(data)
+
         #deleted row
         #self.get_logger().info('Got Image')
         current_frame = self.br.imgmsg_to_cv2(data)
@@ -248,6 +295,7 @@ class TrafficSignDetector(Node):
                     red_sign = False
                 if (label == 1):
                     label = 'Stop'
+                
                 # Only process for distance if sign is red and confidence > threshold
                 if (confidence > pos_det_threshold) and red_sign:
                     height = ymax - ymin 
@@ -264,8 +312,23 @@ class TrafficSignDetector(Node):
                     d_pred_ft_str = '{:.2f}'.format(d_pred_ft)
                     print(d_pred_ft,'ft.', d_pred, 'in')
                     cv2.rectangle(current_frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
-                    cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
-                    cv2.putText(current_frame, f"{d_pred_ft_str}", (xmax, ymax + 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    #cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    #cv2.putText(current_frame, f"{d_pred_ft_str}", (xmax, ymax + 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    # disp_img_height, disp_img_width, _ = current_frame.shape
+                    # xmin_flip = disp_img_width - xmin
+                    # xmax_flip = disp_img_width - xmax
+                    # ymin_flip = disp_img_height -  ymin
+                    # ymax_flip = disp_img_height - ymax
+                    cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmax, ymax - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    cv2.putText(current_frame, f"{d_pred_ft_str}", (xmin, ymin + 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    
+                    # Trying this - if it doesn't work switch to above
+                    # cv2.rectangle(current_frame, (xmax, ymax), (xmin, ymin), (0, 255, 0), 2)
+                    # cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmax, ymax - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    # cv2.putText(current_frame, f"{d_pred_ft_str}", (xmin, ymin + 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    # Structure: Predicted Distance in Inches, Predicted Distance in Feet, Confidence, Color is Red (True for Red, False for Not Red)
+                    
+                    #output_info =np.array([d_pred, d_pred_ft, confidence, red_sign])
 
 
 
@@ -311,10 +374,11 @@ class TrafficSignDetector(Node):
             # frame_skip_counter += 1
             cv2.imshow('Processed Image', current_frame)
             cv2.waitKey(1)
-            cv2.imwrite('/home/joyride-obc/joyride-ros-main/src/joyride_perception/first_frame4meter.jpg', current_frame)
+            #cv2.imwrite('/home/joyride-obc/joyride-ros-main/src/joyride_perception/first_frame4meter.jpg', current_frame)
 
             current_frame = self.br.cv2_to_imgmsg(current_frame)
             self.image_publisher.publish(current_frame)
+            #self.sign_det_range_publisher.publish(output_info)
             
             #self.image_publisher.publish(processed_image)
 
