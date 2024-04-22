@@ -151,62 +151,62 @@ class TrafficSignDetector(Node):
     def inference(self, image: Image):
         return self.model(image)
 
-    # def getDetectionArray(self, df):
-    #     dda = Detection2DArray()
+    def getDetectionArray(self, df):
+        dda = Detection2DArray()
 
-    #     detections = []
-    #     self.counter += 1
+        detections = []
+        self.counter += 1
 
-    #     for row in df.itertuples():
+        for row in df.itertuples():
            
-    #         # self.get_logger().info(f"Detected {row.name}")
+            # self.get_logger().info(f"Detected {row.name}")
 
-    #         detection = Detection2D()
+            detection = Detection2D()
 
-    #         detection.header.stamp = self.get_clock().now().to_msg()
-    #         detection.header.frame_id = str(self.counter)
+            detection.header.stamp = self.get_clock().now().to_msg()
+            detection.header.frame_id = str(self.counter)
 
-    #         hypothesises = []
-    #         hypothesis = ObjectHypothesisWithPose()
-    #         hypothesis.hypothesis.class_id = str(row[6])
-    #         hypothesis.hypothesis.score = float(row[5])
+            hypothesises = []
+            hypothesis = ObjectHypothesisWithPose()
+            hypothesis.hypothesis.class_id = str(row[6])
+            hypothesis.hypothesis.score = float(row[5])
 
-    #         pwc = PoseWithCovariance()
-    #         pwc.pose.position = Point()
-    #         pwc.pose.position.x = (int(row.xmin) + int(row.xmax)) / 2
-    #         pwc.pose.position.y = (int(row.ymin) + int(row.ymax)) / 2
+            pwc = PoseWithCovariance()
+            pwc.pose.position = Point()
+            pwc.pose.position.x = (int(row.xmin) + int(row.xmax)) / 2
+            pwc.pose.position.y = (int(row.ymin) + int(row.ymax)) / 2
 
-    #         hypothesis.pose = pwc
+            hypothesis.pose = pwc
 
-    #         hypothesises.append(hypothesis)
-    #         detection.results = hypothesises
+            hypothesises.append(hypothesis)
+            detection.results = hypothesises
 
-    #         bbox = BoundingBox2D()
-    #         bbox.size_x = (int(row.xmax) - int(row.xmin)) / 2
-    #         bbox.size_y = (int(row.ymax) - int(row.ymin)) / 2
+            bbox = BoundingBox2D()
+            bbox.size_x = (int(row.xmax) - int(row.xmin)) / 2
+            bbox.size_y = (int(row.ymax) - int(row.ymin)) / 2
 
-    #         point = Point2D()
-    #         point.x = (int(row.xmin) + int(row.xmax)) / 2
-    #         point.y = (int(row.ymin) + int(row.ymax)) / 2
+            point = Point2D()
+            point.x = (int(row.xmin) + int(row.xmax)) / 2
+            point.y = (int(row.ymin) + int(row.ymax)) / 2
 
-    #         center = Pose2D()
-    #         center.position = point
-    #         center.theta = 0.0
+            center = Pose2D()
+            center.position = point
+            center.theta = 0.0
 
-    #         detection.bbox = bbox
+            detection.bbox = bbox
 
-    #         detections.append(detection)
+            detections.append(detection)
 
 
 
-    #     dda.detections = detections
-    #     dda.header.stamp = self.get_clock().now().to_msg()
-    #     dda.header.frame_id = str(self.counter)
+        dda.detections = detections
+        dda.header.stamp = self.get_clock().now().to_msg()
+        dda.header.frame_id = str(self.counter)
 
-    #     # print("row")
-    #     # print(row)
+        # print("row")
+        # print(row)
 
-    #     return dda
+        return dda
        
     # def add_bounding_box(self, image, results):
     #     for result in results.xyxy[0]:
