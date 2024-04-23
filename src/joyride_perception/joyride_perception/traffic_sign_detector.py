@@ -124,6 +124,7 @@ class TrafficSignDetector(Node):
             self.listener_callback,
             1
         ) # may want to mess with the queue size of 1
+        self.reader = easyocr.Reader(['en'], gpu=True)
 
         self.image_publisher = self.create_publisher(Image, 'yolov5/image', 10)
         self.json_publisher = self.create_publisher(String, 'yolov5/json', 10)
@@ -260,6 +261,7 @@ class TrafficSignDetector(Node):
         #self.get_logger().info('Got Image')
         current_frame = self.br.imgmsg_to_cv2(data)
         results = self.inference(current_frame)
+        # reader = easyocr.Reader(['en'], gpu=True)
 
         # reader = easyocr.Reader(['en'])
 
@@ -273,6 +275,8 @@ class TrafficSignDetector(Node):
             frame_skip_threshold = 100000
             last_detected_texts = {}
             for result in results.xyxy[0]:
+                # reader = easyocr.Reader(['en'], gpu=True)
+                frame_skip_counter += 1
                 label = int(result[5])
                 confidence = result[4]
                 xmin, ymin, xmax, ymax = map(int, result[:4])
@@ -295,12 +299,11 @@ class TrafficSignDetector(Node):
                     red_sign = False
                 if (label == 1):
                     label = 'Stop'
-                # if frame_skip_counter % 10000:
-                # ocr_results = reader.readtext(np.array(cropped_img))
-                # detected_text = " ".join(res[1] for res in ocr_results)
-                # last_detected_texts[label] = detected_text
-                # else:
-                #     detected_text = last_detected_texts.get(label, "")
+                frame_skip_counter = 0
+                ocr_results = self.reader.readtext(np.array(img_verify_color)) # img_verify_color is cropped img
+                detected_text = " ".join(res[1] for res in ocr_results)
+                last_detected_texts[label] = detected_text
+                print('OCR Running', detected_text)
                 # Only process for distance if sign is red and confidence > threshold
                 if (confidence > pos_det_threshold) and red_sign:
                     height = ymax - ymin 
@@ -329,9 +332,10 @@ class TrafficSignDetector(Node):
                     # xmax_flip = disp_img_width - xmax
                     # ymin_flip = disp_img_height -  ymin
                     # ymax_flip = disp_img_height - ymax
-                    cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmax, ymax - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
-                    cv2.putText(current_frame, f"{d_pred_ft_str}", (xmin, ymin + 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    cv2.putText(current_frame, f"{label}, Conf: {confidence:.2f}", (xmax, ymax - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                    cv2.putText(current_frame, f"{d_pred_ft_str}, {detected_text}", (xmax, ymax - 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
                     
+                
                     # Trying this - if it doesn't work switch to above
                     # cv2.rectangle(current_frame, (xmax, ymax), (xmin, ymin), (0, 255, 0), 2)
                     # cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmax, ymax - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
