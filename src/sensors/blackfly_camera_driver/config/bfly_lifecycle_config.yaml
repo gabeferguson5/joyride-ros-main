@@ -6,6 +6,7 @@
     video_mode: 'Mode1'
     raw_image_topic: '/sensors/cameras/center/image'
     compress_image: True
+    flip_image: True
 
 /sensors/cameras/bfly_left:
   ros__parameters:
@@ -13,6 +14,8 @@
     pixel_format: 'RGB8Packed'
     video_mode: 'Mode1'
     raw_image_topic: '/sensors/cameras/left/image'
+    compress_image: True
+    flip_image: True
 
 /sensors/cameras/bfly_right:
   ros__parameters:
@@ -20,3 +23,5 @@
     pixel_format: 'RGB8Packed'
     video_mode: 'Mode1'
     raw_image_topic: '/sensors/cameras/right/image'
+    compress_image: True
+    flip_image: True

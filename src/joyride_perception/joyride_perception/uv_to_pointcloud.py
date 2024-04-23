@@ -87,8 +87,8 @@ class PointCloudPublisher(Node):
     def image_callback(self, msg:Image):
         # Convert the binary image to OpenCV format
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='mono8')
-        cv_image = cv2.flip(cv_image, 0)
-        cv_image = cv2.flip(cv_image, 1)
+        #cv_image = cv2.flip(cv_image, 0)
+        #cv_image = cv2.flip(cv_image, 1)
 
         print(cv_image.shape)
         print(2)

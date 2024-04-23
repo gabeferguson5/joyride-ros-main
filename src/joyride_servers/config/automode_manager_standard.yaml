@@ -20,7 +20,7 @@ automode_manager_server:
     roscan:
       name: /servers/roscan_interface
       id: 02
-      require: True
+      require: False
     gps:
       name: /sensors/gps_odom
       id: 0x0f
@@ -32,7 +32,7 @@ automode_manager_server:
     drive_controller:
       name: /dbw/drive_controller
       id: 0xc0
-      require: True
+      require: False
     accessory_controller:
       name: /dbw/accessory_controller
       id: 0xc1

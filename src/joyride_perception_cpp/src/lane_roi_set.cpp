@@ -19,7 +19,7 @@ void handleMsg(const sensor_msgs::msg::Image::SharedPtr msg){
     // Convert ROS image message to OpenCV format
     img = cv_bridge::toCvShare(msg, "bgr8")->image;
 
-    flip(img, img ,-1);
+    //flip(img, img ,-1);
 
     namedWindow(window_roi, WINDOW_NORMAL);
     imshow(window_roi, img);
