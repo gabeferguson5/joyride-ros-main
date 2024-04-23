@@ -52,10 +52,10 @@ class LifecycleBlackflyCameraDriver(Node):
         try:
             if self.bfly_camera is not None:
                 img = cv2.cvtColor(self.bfly_camera.get_array(), cv2.COLOR_RGB2BGR)
-                # === Start: Testing fliping the image === #
-                # img = cv2.flip(img, 0)
-                # img = cv2.flip(img, 1)
-                # === End:  Testing fliping the image === #
+
+                if self.flip_image:
+                    img = cv2.flip(img, 0)
+                    img = cv2.flip(img, 1)
 
                 #TODO import intrinsics to indavidual camera
                 # === Start: Testing of Intrinsics === #
@@ -138,7 +138,7 @@ class LifecycleBlackflyCameraDriver(Node):
         self.pixel_format = self.declare_parameter('pixel_format', 'RGB8Packed').get_parameter_value().string_value
         self.frequency = self.declare_parameter('frequency', 100.0).get_parameter_value().double_value
         self.compress_image = self.declare_parameter('compress_image', False).get_parameter_value().bool_value
-
+        self.flip_image = self.declare_parameter("flip_image",True).get_parameter_value().bool_value
 
         # Pub/Sub/Timers
         self.image_publisher = self.create_lifecycle_publisher(Image, self.image_raw_publish_topic, 10)

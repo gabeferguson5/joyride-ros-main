@@ -216,15 +216,27 @@ local_costmap:
       origin_y: -7.5
       resolution: 0.05
       robot_radius: 1.73
-      plugins: ["obstacle_layer", "inflation_layer"]
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 1.5
-      obstacle_layer:
+      plugins: ["obstacle1_layer", "obstacle2_layer", "inflation_layer"]
+      obstacle2_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: hokuyo_front_scan
+        observation_sources: "white_detection"
+        white_detection:
+          topic: /perception/center/lanes_point_cloud
+          sensor_frame: base_link
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
+          raytrace_max_range: 10.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 25.0
+          obstacle_min_range: 0.0
+          inflation_radius: 0.2
+      obstacle1_layer:   
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: "hokuyo_front_scan"
         hokuyo_front_scan:
           topic: /sensors/lidar/front_lidar/scan
           sensor_frame: hokuyo_front
@@ -236,11 +248,14 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 25.0
           obstacle_min_range: 0.0
+          inflation_radius: 1.5 
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0    
       static_layer:
         enable: True
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
-
       always_send_full_costmap: True
   local_costmap_client:
     ros__parameters:
@@ -265,7 +280,7 @@ global_costmap:
       robot_radius: 1.73
       resolution: 0.1
       track_unknown_space: False
-      plugins: ["obstacle_layer", "inflation_layer", "static_layer"]
+      plugins: ["obstacle1_layer", "obstacle2_layer", "inflation_layer", "static_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -273,10 +288,10 @@ global_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 1.5
-      obstacle_layer:
+      obstacle1_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: hokuyo_front_scan
+        observation_sources: ["hokuyo_front_scan","white_detection"]
         hokuyo_front_scan:
           topic: /sensors/lidar/front_lidar/scan
           sensor_frame: hokuyo_front
@@ -284,6 +299,21 @@ global_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
+          raytrace_max_range: 10.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 25.0
+          obstacle_min_range: 0.0
+      obstacle2_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_source: "white_detection"
+        white_detection:
+          topic: /perception/center/lanes_point_cloud
+          sensor_frame: base_link
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"
           raytrace_max_range: 10.0
           raytrace_min_range: 0.0
           obstacle_max_range: 25.0

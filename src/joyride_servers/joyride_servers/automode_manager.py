@@ -85,7 +85,6 @@ class AutoModeManagerServerNode(Node):
             if not msg.hardware_auto_enable:
                 self.SYSTEM_STATUS.auto_software_enabled = False
             
-
     def handleDiagnosticStatusMsg_Callback(self, msg:DiagnosticArray):
         presentMsgs_ids = []
         supplementalDiag = DiagnosticArray()

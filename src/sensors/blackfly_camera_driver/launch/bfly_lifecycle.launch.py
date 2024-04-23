@@ -13,6 +13,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 def generate_launch_description():
 
     lifecycle_nodes = [ '/sensors/cameras/bfly_center','/sensors/cameras/bfly_left', '/sensors/cameras/bfly_right']
+    #lifecycle_nodes = [ '/sensors/cameras/bfly_left', '/sensors/cameras/bfly_right']
+
     autostart = True
 
     camera_params = os.path.join(get_package_share_directory('blackfly_camera_driver'), 'config', 'bfly_lifecycle_config.yaml')
