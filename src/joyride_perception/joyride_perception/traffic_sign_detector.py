@@ -269,8 +269,8 @@ class TrafficSignDetector(Node):
             # reader = easyocr.Reader(['en'])
 
 
-            # frame_skip_counter = 0
-            # frame_skip_threshold = 100000
+            frame_skip_counter = 0
+            frame_skip_threshold = 100000
             last_detected_texts = {}
             for result in results.xyxy[0]:
                 label = int(result[5])
@@ -295,7 +295,12 @@ class TrafficSignDetector(Node):
                     red_sign = False
                 if (label == 1):
                     label = 'Stop'
-                
+                # if frame_skip_counter % 10000:
+                # ocr_results = reader.readtext(np.array(cropped_img))
+                # detected_text = " ".join(res[1] for res in ocr_results)
+                # last_detected_texts[label] = detected_text
+                # else:
+                #     detected_text = last_detected_texts.get(label, "")
                 # Only process for distance if sign is red and confidence > threshold
                 if (confidence > pos_det_threshold) and red_sign:
                     height = ymax - ymin 
@@ -310,6 +315,11 @@ class TrafficSignDetector(Node):
                         d_pred = d_pred + tune_d_pred - 10
                     d_pred_ft = float(d_pred) / 12.0
                     d_pred_ft_str = '{:.2f}'.format(d_pred_ft)
+                #     ocr_results = reader.readtext(np.array(cropped_img))
+                #     detected_text = " ".join(res[1] for res in ocr_results)
+                #     last_detected_texts[label] = detected_text
+                # else:
+                #     detected_text = last_detected_texts.get(label, "")
                     print(d_pred_ft,'ft.', d_pred, 'in')
                     cv2.rectangle(current_frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
                     #cv2.putText(current_frame, f"{label} {confidence:.2f}", (xmin, ymin - 5), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
@@ -345,7 +355,7 @@ class TrafficSignDetector(Node):
                 #     reader = easyocr.Reader(['en'])
 
 
-                #     ocr_results = reader.readtext(np.array(flipped_img))
+                #     ocr_results = reader.readtext(np.array(cropped_img))
                 #     detected_text = " ".join(res[1] for res in ocr_results)
                 #     last_detected_texts[label] = detected_text
                 # else:
